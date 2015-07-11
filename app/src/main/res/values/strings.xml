@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">P4$$w0rd</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string-array name="charsets_array">
+        <item>Letters</item>
+        <item>Numbers</item>
+        <item>Symbols</item>
+    </string-array>
+
+</resources>
