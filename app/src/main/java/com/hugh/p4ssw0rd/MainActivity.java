@@ -4,10 +4,18 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+
+import colorpicker.ColorPickerDialog;
+import colorpicker.ColorPickerSwatch;
 
 public class MainActivity extends Activity {
 
@@ -19,6 +27,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         thisActivity = this;
+        mColor = colorChoice(this);
+        mSelectedColorCal0 = mColor[0];
 
         if (!Phash.hasPasswordBeenSet(getApplicationContext())) {
             showSetPassword();            // TODO: make resilient to someone deleting hash file on disk
@@ -64,6 +74,48 @@ public class MainActivity extends Activity {
         setPasswordFragment.show(fm, "set password");
     }
 
+    int[] mColor;
+    int mSelectedColorCal0;
+
+    public static int[] colorChoice(Context context){
+        int[] mColorChoices=null;
+        String[] color_array = context.getResources().getStringArray(R.array.default_color_choice_values);
+
+        if (color_array!=null && color_array.length>0) {
+            mColorChoices = new int[color_array.length];
+            for (int i = 0; i < color_array.length; i++) {
+                mColorChoices[i] = Color.parseColor(color_array[i]);
+            }
+        }
+        return mColorChoices;
+    }
+    private void showThemeChooser() {
+        ColorPickerDialog colorcalendar = ColorPickerDialog.newInstance(
+                R.string.color_picker_default_title,
+                mColor,
+                mSelectedColorCal0,
+                4,
+                ColorPickerDialog.SIZE_SMALL);
+
+        //Implement listener to get selected color value
+        colorcalendar.setOnColorSelectedListener(new ColorPickerSwatch.OnColorSelectedListener(){
+
+            @Override
+            public void onColorSelected(int color) {
+                mSelectedColorCal0=color;
+                setActivityBackgroundColor(mSelectedColorCal0);
+            }
+
+        });
+
+        colorcalendar.show(getFragmentManager(),"cal");
+    }
+
+    public void setActivityBackgroundColor(int color) {
+        LinearLayout main = (LinearLayout) findViewById(R.id.main_layout);
+        main.setBackgroundColor(color);
+    }
+
     private void showEditor() {
         startActivity( new Intent(this, EditorActivity.class) );
     }
@@ -86,5 +138,27 @@ public class MainActivity extends Activity {
                 changingMaster = false;
             }
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        boolean success;
+        switch(item.getItemId()) {
+            case R.id.change_theme:
+                showThemeChooser();
+                success = true;
+                break;
+            default:
+                success = super.onOptionsItemSelected(item);
+                break;
+        }
+        return success;
     }
 }
