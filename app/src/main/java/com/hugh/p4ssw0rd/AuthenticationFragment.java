@@ -4,10 +4,8 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,24 +16,35 @@ import android.widget.Toast;
 
 public class AuthenticationFragment extends DialogFragment implements View.OnClickListener {
 
-    Button cancel, submit;
-    EditText enteredPassword;
-    TextView passwordFailure;
-
     private static int failedAttempts;
-    final String LOGTAG = "Authentication Fragment";
+    private final String LOGTAG = "Authentication Fragment";
+
+    private Button cancel, submit;
+    private EditText enteredPassword;
+    private TextView passwordFailure;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_authentication, container);
 
-        enteredPassword = (EditText) view.findViewById(R.id.authentication_box);
-        passwordFailure = (TextView) view.findViewById(R.id.authentication_failure);
-
         cancel = (Button) view.findViewById(R.id.authentication_cancel);
         cancel.setOnClickListener(this);
         submit = (Button) view.findViewById(R.id.authentication_submit);
         submit.setOnClickListener(this);
+
+        enteredPassword = (EditText) view.findViewById(R.id.authentication_box);
+        enteredPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                boolean textboxEmpty = enteredPassword.getText().toString().isEmpty();
+                submit.setEnabled(!textboxEmpty);                                                   // disable submit button if textbox is empty to avoid crashing
+            }
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        });
+
+        passwordFailure = (TextView) view.findViewById(R.id.authentication_failure);
 
         getDialog().setTitle("Enter password");
         getDialog().setCancelable(false);
@@ -50,14 +59,9 @@ public class AuthenticationFragment extends DialogFragment implements View.OnCli
         switch (view.getId()) {
             case R.id.authentication_submit:
                 String submittedPassword = enteredPassword.getText().toString();
-                if (submittedPassword.equals("")) {
-                    getActivity().finish();
-                }
-                else {
-                    success = Phash.checkPassword(getActivity(), submittedPassword);
-                    String message = success ? "Access Granted" : "Access Denied";
-                    Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
-                }
+                success = Phash.checkPassword(getActivity(), submittedPassword);
+                String message = success ? "Access Granted" : "Access Denied";
+                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
                 break;
             case R.id.authentication_cancel:
                 dismiss();
@@ -75,6 +79,8 @@ public class AuthenticationFragment extends DialogFragment implements View.OnCli
                 passwordFailure.setVisibility(View.VISIBLE);
             }
 
+            // we make user wait a number of seconds before trying again to avoid brute force attacks
+            // the amount of time they have to wait increases exponentially on each failed attempt
             long backoff = getBackoffMillis(++failedAttempts);
 
             if (backoff >= 1000) {
@@ -94,8 +100,8 @@ public class AuthenticationFragment extends DialogFragment implements View.OnCli
         }
     }
 
-    void returnAuthResult(boolean success) {
-        ((MainActivity)getActivity()).onAuthReturn(success);
+    private void returnAuthResult(boolean success) {
+        ((MainActivity) getActivity()).onAuthReturn(success);
     }
 
     @Override
@@ -108,6 +114,7 @@ public class AuthenticationFragment extends DialogFragment implements View.OnCli
         };
     }
 
+    /* function to return exponential backoff value in milliseconds */
     private long getBackoffMillis(int failedAttempts) {
         return (long) Math.pow(2, failedAttempts - 1) * 1000;
     }
