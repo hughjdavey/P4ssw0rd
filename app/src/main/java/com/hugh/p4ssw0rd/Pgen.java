@@ -11,6 +11,9 @@ public class Pgen {
     private static SecureRandom random = new SecureRandom();
     private static String LOGTAG = "Password Generator";
 
+    /**
+     * Enumeration of the three supported character types
+     */
     public enum Chartype {
         LETTERS("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
         NUMBERS("0123456789"),
@@ -25,6 +28,17 @@ public class Pgen {
         }
     }
 
+    /**
+     * Generate a random password
+     *
+     * There are more letters than anything else so to avoid a letter-heavy password we randomly
+     * select a chartype for each character rather than combining all chartypes into one set,
+     * which can and did produce 'alphanumeric' passwords consisting solely of letters
+     *
+     * @param size user selected length
+     * @param types user selected character type(s) (from alphabetic, numeric and symbolic)
+     * @return random password of specified length using all specified character types
+     */
     public static String generatePassword(int size, Set<Chartype> types) {
         StringBuilder password = new StringBuilder();
         while (size > 0) {
