@@ -6,13 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import colorpicker.ColorPickerDialog;
 import colorpicker.ColorPickerSwatch;
@@ -21,6 +21,7 @@ public class MainActivity extends Activity {
 
     Button changeMaster, newPassword, viewPasswords;
     Context thisActivity;
+    TextView mainTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +37,8 @@ public class MainActivity extends Activity {
         else {
             showAuthenticator();
         }
+
+        mainTitle = (TextView) findViewById(R.id.main_title);
 
         newPassword = (Button) findViewById(R.id.new_password);
         newPassword.setOnClickListener(new View.OnClickListener() {
@@ -89,6 +92,7 @@ public class MainActivity extends Activity {
         }
         return mColorChoices;
     }
+
     private void showThemeChooser() {
         ColorPickerDialog colorcalendar = ColorPickerDialog.newInstance(
                 R.string.color_picker_default_title,
@@ -103,7 +107,7 @@ public class MainActivity extends Activity {
             @Override
             public void onColorSelected(int color) {
                 mSelectedColorCal0=color;
-                setActivityBackgroundColor(mSelectedColorCal0);
+                onThemeChanged(mSelectedColorCal0);
             }
 
         });
@@ -111,9 +115,34 @@ public class MainActivity extends Activity {
         colorcalendar.show(getFragmentManager(),"cal");
     }
 
-    public void setActivityBackgroundColor(int color) {
+    public void onThemeChanged(int color) {
         LinearLayout main = (LinearLayout) findViewById(R.id.main_layout);
         main.setBackgroundColor(color);
+        setTextColours(getGoodColour(color));
+        // TODO persist colour choice and possibly adjust text colour to show up well
+    }
+
+    private void setTextColours(int colour) {
+        changeMaster.setTextColor(colour);
+        newPassword.setTextColor(colour);
+        viewPasswords.setTextColor(colour);
+        mainTitle.setTextColor(colour);
+    }
+
+    private int getGoodColour(int background) {
+        int red = Color.red(background);
+        int green = Color.green(background);
+        int blue = Color.blue(background);
+
+        if ((red*0.299 + green*0.587 + blue*0.114) > 186) {
+            return Color.BLACK;
+        }
+        else {
+            return Color.WHITE;
+        }
+
+        //int alpha = Color.alpha(color);
+        //return Color.argb(alpha, 255-red, 255-green, 255-blue);
     }
 
     private void showEditor() {
