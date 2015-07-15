@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -13,11 +15,18 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import colorpicker.ColorPickerDialog;
 import colorpicker.ColorPickerSwatch;
 
 public class MainActivity extends Activity {
+
+    private final static int DEFAULT_COLOR = -6736948;
+    private final static String COLOR_PREFERENCE = "color_pref";
+
+    private int[] colorChoices;
+    private int currentColor;
 
     Button changeMaster, newPassword, viewPasswords;
     Context thisActivity;
@@ -28,8 +37,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         thisActivity = this;
-        mColor = colorChoice(this);
-        mSelectedColorCal0 = mColor[0];
 
         if (!Phash.hasPasswordBeenSet(getApplicationContext())) {
             showSetPassword();            // TODO: make resilient to someone deleting hash file on disk
@@ -63,6 +70,11 @@ public class MainActivity extends Activity {
                 showChangeMaster();
             }
         });
+
+        colorChoices = colorChoice(this);
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        currentColor = prefs.getInt(COLOR_PREFERENCE, DEFAULT_COLOR);
+        onColorChanged(currentColor);
     }
 
     private void showAuthenticator() {
@@ -77,10 +89,39 @@ public class MainActivity extends Activity {
         setPasswordFragment.show(fm, "set password");
     }
 
-    int[] mColor;
-    int mSelectedColorCal0;
+    private void showColorChooser() {
+        ColorPickerDialog dialog = ColorPickerDialog.newInstance(
+                R.string.color_picker_default_title,
+                colorChoices,
+                currentColor,
+                4,                                                          // number of rows
+                ColorPickerDialog.SIZE_SMALL);
 
-    public static int[] colorChoice(Context context){
+        dialog.setOnColorSelectedListener(new ColorPickerSwatch.OnColorSelectedListener() {
+
+            @Override
+            public void onColorSelected(int color) {
+                currentColor = color;
+                onColorChanged(currentColor);
+            }
+
+        });
+
+        dialog.show(getFragmentManager(), "colour_dialog");
+    }
+
+    private void onColorChanged(int color) {
+        LinearLayout main = (LinearLayout) findViewById(R.id.main_layout);
+        main.setBackgroundColor(color);
+        setTextColors(getGoodColor(color));
+        // TODO make colour change apply to other activities
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(COLOR_PREFERENCE, color);
+        editor.apply();
+    }
+
+    private static int[] colorChoice(Context context){
         int[] mColorChoices=null;
         String[] color_array = context.getResources().getStringArray(R.array.default_color_choice_values);
 
@@ -93,43 +134,14 @@ public class MainActivity extends Activity {
         return mColorChoices;
     }
 
-    private void showThemeChooser() {
-        ColorPickerDialog colorcalendar = ColorPickerDialog.newInstance(
-                R.string.color_picker_default_title,
-                mColor,
-                mSelectedColorCal0,
-                4,
-                ColorPickerDialog.SIZE_SMALL);
-
-        //Implement listener to get selected color value
-        colorcalendar.setOnColorSelectedListener(new ColorPickerSwatch.OnColorSelectedListener(){
-
-            @Override
-            public void onColorSelected(int color) {
-                mSelectedColorCal0=color;
-                onThemeChanged(mSelectedColorCal0);
-            }
-
-        });
-
-        colorcalendar.show(getFragmentManager(),"cal");
+    private void setTextColors(int color) {
+        changeMaster.setTextColor(color);
+        newPassword.setTextColor(color);
+        viewPasswords.setTextColor(color);
+        mainTitle.setTextColor(color);
     }
 
-    public void onThemeChanged(int color) {
-        LinearLayout main = (LinearLayout) findViewById(R.id.main_layout);
-        main.setBackgroundColor(color);
-        setTextColours(getGoodColour(color));
-        // TODO persist colour choice and possibly adjust text colour to show up well
-    }
-
-    private void setTextColours(int colour) {
-        changeMaster.setTextColor(colour);
-        newPassword.setTextColor(colour);
-        viewPasswords.setTextColor(colour);
-        mainTitle.setTextColor(colour);
-    }
-
-    private int getGoodColour(int background) {
+    private int getGoodColor(int background) {
         int red = Color.red(background);
         int green = Color.green(background);
         int blue = Color.blue(background);
@@ -181,7 +193,7 @@ public class MainActivity extends Activity {
         boolean success;
         switch(item.getItemId()) {
             case R.id.change_theme:
-                showThemeChooser();
+                showColorChooser();
                 success = true;
                 break;
             default:

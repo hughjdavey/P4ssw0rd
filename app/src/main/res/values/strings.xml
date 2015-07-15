@@ -30,9 +30,10 @@
         <item>#ff8800</item>
         <item>#cc0000</item>
         <item>#ffffff</item>
-        <item>#eeeeee</item>
+        <item>#000000</item>
+        <!--<item>#eeeeee</item>
         <item>#cccccc</item>
-        <item>#888888</item>
+        <item>#888888</item>-->
     </string-array>
 
 </resources>

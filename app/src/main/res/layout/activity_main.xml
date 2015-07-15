@@ -9,14 +9,16 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    android:background="#ff5b23ff"
+    android:background="#9933cc"
     android:orientation="vertical">
+    <!-- background was ff5b23ff -->
 
     <TextView
         android:text="Welcome to P4s$w0rD!"
         android:textSize="25sp"
         android:textStyle="bold"
         android:textColor="#ffffff"
+        android:id="@+id/main_title"
         android:layout_marginTop="30dp"
         android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
