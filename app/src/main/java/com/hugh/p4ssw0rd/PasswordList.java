@@ -6,6 +6,7 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,7 +16,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +38,10 @@ public class PasswordList extends Activity {
     public final static String PASSWORD_ID = "id", PASSWORD_PASSWORD = "pwd", PASSWORD_URL = "url", PASSWORD_USERNAME = "usr";
     private final static String LOGTAG = "Password List";
     private final static int EDIT_REQUEST_CODE = 1337;
+
+    private ImageButton floatingAction;
+    private ColorChanger colorChanger;
+    private RelativeLayout layout;
 
     private enum ACTION {
         VIEW, DELETE, EDIT;
@@ -55,6 +63,25 @@ public class PasswordList extends Activity {
         passwordListview.setOnItemClickListener(PasswordClickHandler);
         passwordListview.setOnItemLongClickListener(PasswordLongClickHandler);
         passwordListview.setAdapter(passwordsAdapter);
+
+        floatingAction = (ImageButton) findViewById(R.id.floating_new_password);
+        floatingAction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), EditorActivity.class));
+            }
+        });
+
+        layout = (RelativeLayout) findViewById(R.id.password_list_activity);
+
+        colorChanger = ColorChanger.getInstance(this);
+        colorChanger.addViews(layout);
+        colorChanger.applyColor();
+    }
+
+    private void onColorChanged(int newColor) {
+        RelativeLayout thisActivity = (RelativeLayout) findViewById(R.id.password_list_activity);
+        thisActivity.setBackgroundColor(newColor);
     }
 
     private void viewPassword(Password clickedPassword) {
@@ -193,11 +220,13 @@ public class PasswordList extends Activity {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.listitem_password, parent, false);
             }
             // Lookup view for data population
-            TextView tvName = (TextView) convertView.findViewById(R.id.item_name);
-            //TextView tvHome = (TextView) convertView.findViewById(R.id.item_password);
+            TextView passwordName = (TextView) convertView.findViewById(R.id.item_name);
+            // set an appropriate text color
+            colorChanger.addViews(passwordName);
+            colorChanger.applyColor();
+
             // Populate the data into the template view using the data object
-            tvName.setText(password.identifier);
-            //tvHome.setText(password.password);
+            passwordName.setText(password.identifier);
             // Return the completed view to render on screen
             return convertView;
         }

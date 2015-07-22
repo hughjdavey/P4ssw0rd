@@ -22,15 +22,12 @@ import colorpicker.ColorPickerSwatch;
 
 public class MainActivity extends Activity {
 
-    private final static int DEFAULT_COLOR = -6736948;
-    private final static String COLOR_PREFERENCE = "color_pref";
-
-    private int[] colorChoices;
-    private int currentColor;
-
     Button changeMaster, newPassword, viewPasswords;
     Context thisActivity;
+    LinearLayout layout;
     TextView mainTitle;
+
+    private ColorChanger colorChanger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +43,7 @@ public class MainActivity extends Activity {
         }
 
         mainTitle = (TextView) findViewById(R.id.main_title);
+        layout = (LinearLayout) findViewById(R.id.main_layout);
 
         newPassword = (Button) findViewById(R.id.new_password);
         newPassword.setOnClickListener(new View.OnClickListener() {
@@ -71,10 +69,9 @@ public class MainActivity extends Activity {
             }
         });
 
-        colorChoices = colorChoice(this);
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-        currentColor = prefs.getInt(COLOR_PREFERENCE, DEFAULT_COLOR);
-        onColorChanged(currentColor);
+        colorChanger = ColorChanger.getInstance(this);
+        colorChanger.addViews(mainTitle, layout, newPassword, viewPasswords, changeMaster);
+        colorChanger.applyColor();
     }
 
     private void showAuthenticator() {
@@ -87,74 +84,6 @@ public class MainActivity extends Activity {
         FragmentManager fm = getFragmentManager();
         SetPasswordFragment setPasswordFragment = new SetPasswordFragment();
         setPasswordFragment.show(fm, "set password");
-    }
-
-    private void showColorChooser() {
-        ColorPickerDialog dialog = ColorPickerDialog.newInstance(
-                R.string.color_picker_default_title,
-                colorChoices,
-                currentColor,
-                4,                                                          // number of rows
-                ColorPickerDialog.SIZE_SMALL);
-
-        dialog.setOnColorSelectedListener(new ColorPickerSwatch.OnColorSelectedListener() {
-
-            @Override
-            public void onColorSelected(int color) {
-                currentColor = color;
-                onColorChanged(currentColor);
-            }
-
-        });
-
-        dialog.show(getFragmentManager(), "colour_dialog");
-    }
-
-    private void onColorChanged(int color) {
-        LinearLayout main = (LinearLayout) findViewById(R.id.main_layout);
-        main.setBackgroundColor(color);
-        setTextColors(getGoodColor(color));
-        // TODO make colour change apply to other activities
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putInt(COLOR_PREFERENCE, color);
-        editor.apply();
-    }
-
-    private static int[] colorChoice(Context context){
-        int[] mColorChoices=null;
-        String[] color_array = context.getResources().getStringArray(R.array.default_color_choice_values);
-
-        if (color_array!=null && color_array.length>0) {
-            mColorChoices = new int[color_array.length];
-            for (int i = 0; i < color_array.length; i++) {
-                mColorChoices[i] = Color.parseColor(color_array[i]);
-            }
-        }
-        return mColorChoices;
-    }
-
-    private void setTextColors(int color) {
-        changeMaster.setTextColor(color);
-        newPassword.setTextColor(color);
-        viewPasswords.setTextColor(color);
-        mainTitle.setTextColor(color);
-    }
-
-    private int getGoodColor(int background) {
-        int red = Color.red(background);
-        int green = Color.green(background);
-        int blue = Color.blue(background);
-
-        if ((red*0.299 + green*0.587 + blue*0.114) > 186) {
-            return Color.BLACK;
-        }
-        else {
-            return Color.WHITE;
-        }
-
-        //int alpha = Color.alpha(color);
-        //return Color.argb(alpha, 255-red, 255-green, 255-blue);
     }
 
     private void showEditor() {
@@ -193,7 +122,7 @@ public class MainActivity extends Activity {
         boolean success;
         switch(item.getItemId()) {
             case R.id.change_theme:
-                showColorChooser();
+                colorChanger.startColorChange();
                 success = true;
                 break;
             default:
