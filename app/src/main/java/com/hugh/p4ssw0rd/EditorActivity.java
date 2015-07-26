@@ -7,12 +7,15 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class EditorActivity extends Activity implements View.OnClickListener {
     Button cancel, save;
+    ColorChanger colorChanger;
     EditText passwordIdentifier, passwordUsername, passwordUrl;
+    LinearLayout layout;
     TextView finalPassword;
 
     boolean editPassword;
@@ -54,6 +57,11 @@ public class EditorActivity extends Activity implements View.OnClickListener {
             editPassword = false;
             setTitle("New Password");
         }
+
+        layout = (LinearLayout) findViewById(R.id.editor_layout);
+        colorChanger = ColorChanger.getInstance(this);
+        colorChanger.addViews(layout, cancel, save, passwordIdentifier, passwordUrl, passwordUsername, finalPassword);
+        colorChanger.applyColor();
     }
 
     @Override
