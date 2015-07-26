@@ -23,6 +23,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.melnykov.fab.FloatingActionButton;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -43,11 +45,6 @@ public class PasswordList extends Activity {
     private ColorChanger colorChanger;
     private RelativeLayout layout;
 
-    private enum ACTION {
-        VIEW, DELETE, EDIT;
-        static String[] actions = {"View", "Edit", "Delete"};
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,8 +61,9 @@ public class PasswordList extends Activity {
         passwordListview.setOnItemLongClickListener(PasswordLongClickHandler);
         passwordListview.setAdapter(passwordsAdapter);
 
-        floatingAction = (ImageButton) findViewById(R.id.floating_new_password);
-        floatingAction.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.attachToListView(passwordListview);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(getApplicationContext(), EditorActivity.class));
@@ -77,11 +75,6 @@ public class PasswordList extends Activity {
         colorChanger = ColorChanger.getInstance(this);
         colorChanger.addViews(layout);
         colorChanger.applyColor();
-    }
-
-    private void onColorChanged(int newColor) {
-        RelativeLayout thisActivity = (RelativeLayout) findViewById(R.id.password_list_activity);
-        thisActivity.setBackgroundColor(newColor);
     }
 
     private void viewPassword(Password clickedPassword) {
@@ -246,10 +239,11 @@ public class PasswordList extends Activity {
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
             final Password clickedPassword = passwordsAdapter.getItem(position);
+            final String[] actions = {"View", "Edit", "Delete"};
 
             AlertDialog.Builder builder = new AlertDialog.Builder(PasswordList.this);
             builder.setTitle("Actions")
-                    .setItems(ACTION.actions, new DialogInterface.OnClickListener() {
+                    .setItems(actions, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             switch (which) {
