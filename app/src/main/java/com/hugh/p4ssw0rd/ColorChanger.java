@@ -81,8 +81,13 @@ public class ColorChanger {
     private void updateViews() {
         for (View view : this.views) {
             if (view instanceof TextView) {
-                ((TextView)view).setTextColor(getGoodColor(currentColor));
-                ((TextView)view).setHintTextColor(getGoodColor(currentColor));
+                int goodColor = getGoodColor(currentColor);
+
+                ((TextView)view).setTextColor(goodColor);
+
+                int goodColorAlpha = Color.alpha(goodColor);
+                int hintColour = Color.argb(goodColorAlpha / 2, Color.red(goodColor), Color.green(goodColor), Color.blue(goodColor));
+                ((TextView)view).setHintTextColor(hintColour);              // half the alpha for the hint color to make transparent
             }
             else {
                 view.setBackgroundColor(currentColor);
