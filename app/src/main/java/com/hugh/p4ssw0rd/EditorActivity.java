@@ -11,8 +11,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.melnykov.fab.FloatingActionButton;
+
 public class EditorActivity extends Activity implements View.OnClickListener {
-    Button cancel, save;
     ColorChanger colorChanger;
     EditText passwordIdentifier, passwordUsername, passwordUrl;
     LinearLayout layout;
@@ -26,10 +27,8 @@ public class EditorActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
-        cancel = (Button) findViewById(R.id.editor_cancel);
-        cancel.setOnClickListener(this);
-        save = (Button) findViewById(R.id.editor_save);
-        save.setOnClickListener(this);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_editor);
+        fab.setOnClickListener(this);
 
         passwordIdentifier = (EditText) findViewById(R.id.password_identifier);
         passwordUsername = (EditText) findViewById(R.id.password_username);
@@ -49,7 +48,6 @@ public class EditorActivity extends Activity implements View.OnClickListener {
             passwordUsername.setText(passwordBundle.getString(PasswordList.PASSWORD_USERNAME));
             passwordUrl.setText(passwordBundle.getString(PasswordList.PASSWORD_URL));
 
-            save.setText("Update");
             editPassword = true;
             setTitle("Edit Password");
         }
@@ -65,18 +63,14 @@ public class EditorActivity extends Activity implements View.OnClickListener {
         TextView pwd_tv = (TextView) findViewById(R.id.editor_password_tv);
 
         colorChanger = ColorChanger.getInstance(this);
-        colorChanger.addViews(layout, cancel, save, passwordIdentifier, passwordUrl, passwordUsername, finalPassword, id_tv, usr_tv, url_tv, pwd_tv);
+        colorChanger.addViews(layout, passwordIdentifier, passwordUrl, passwordUsername, finalPassword, id_tv, usr_tv, url_tv, pwd_tv);
         colorChanger.applyColor();
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.editor_cancel:
-                finish();
-                break;
-
-            case R.id.editor_save:
+            case R.id.fab_editor:
                 warnIdentifier();
 
                 if (!editPassword) {
