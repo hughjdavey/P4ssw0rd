@@ -82,6 +82,7 @@ public class ColorChanger {
         for (View view : this.views) {
             if (view instanceof TextView) {
                 ((TextView)view).setTextColor(getGoodColor(currentColor));
+                ((TextView)view).setHintTextColor(getGoodColor(currentColor));
             }
             else {
                 view.setBackgroundColor(currentColor);

@@ -59,8 +59,13 @@ public class EditorActivity extends Activity implements View.OnClickListener {
         }
 
         layout = (LinearLayout) findViewById(R.id.editor_layout);
+        TextView id_tv = (TextView) findViewById(R.id.editor_identifier_tv);
+        TextView usr_tv = (TextView) findViewById(R.id.editor_username_tv);
+        TextView url_tv = (TextView) findViewById(R.id.editor_url_tv);
+        TextView pwd_tv = (TextView) findViewById(R.id.editor_password_tv);
+
         colorChanger = ColorChanger.getInstance(this);
-        colorChanger.addViews(layout, cancel, save, passwordIdentifier, passwordUrl, passwordUsername, finalPassword);
+        colorChanger.addViews(layout, cancel, save, passwordIdentifier, passwordUrl, passwordUsername, finalPassword, id_tv, usr_tv, url_tv, pwd_tv);
         colorChanger.applyColor();
     }
 
