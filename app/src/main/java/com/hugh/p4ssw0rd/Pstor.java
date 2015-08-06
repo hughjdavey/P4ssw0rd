@@ -1,6 +1,7 @@
 package com.hugh.p4ssw0rd;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -9,6 +10,8 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,10 +23,12 @@ import java.util.Map;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Pstor {
     private static final String FILENAME = "db";
+    private static final String LOGTAG = "Password Store";
     private Context context;
     private Map<String, Password> passwordMap;
 
@@ -71,9 +76,9 @@ public class Pstor {
     }
 
     public void updatePassword(Password password) {
-        String identifier = password.identifier.toLowerCase();
         removePassword(password);
         addPassword(password);
+        save();
     }
 
     /** loads the map of password objects from disk */
@@ -81,13 +86,13 @@ public class Pstor {
         Map<String, Password> passMap;
 
         try(FileInputStream inputStream = context.openFileInput(FILENAME)) {
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
-            cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secretKey, ALGORITHM));
+            //Cipher cipher = Cipher.getInstance(ALGORITHM);
+            //cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secretKey, ALGORITHM));
 
             ObjectInputStream objectIn =
                     new ObjectInputStream(
                             new BufferedInputStream(
-                                    new CipherInputStream(inputStream, cipher)));
+                                    new CipherInputStream(inputStream, getCipher(Cipher.DECRYPT_MODE))));
 
             passMap = (HashMap<String, Password>) objectIn.readObject();
             objectIn.close();
@@ -103,13 +108,13 @@ public class Pstor {
         boolean success = false;
 
         try(FileOutputStream outputStream = context.openFileOutput(FILENAME, Context.MODE_PRIVATE)) {
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
-            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(secretKey, ALGORITHM));
+            //Cipher cipher = Cipher.getInstance(ALGORITHM);
+            //cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(secretKey, ALGORITHM));
 
             ObjectOutputStream objectOut =
                     new ObjectOutputStream(
                             new BufferedOutputStream(
-                                    new CipherOutputStream(outputStream, cipher)));
+                                    new CipherOutputStream(outputStream, getCipher(Cipher.ENCRYPT_MODE))));
 
             objectOut.writeObject(this.passwordMap);
             success = true;
@@ -118,5 +123,42 @@ public class Pstor {
             success = false;
         }
         return success;
+    }
+
+    // TODO switch to CBC mode
+    // TODO generate secretkey based on master password
+    private Cipher getCipher(int mode) {
+        Cipher cipher = null;
+        try {
+            cipher = Cipher.getInstance(ALGORITHM);
+            cipher.init(mode, getSecretKey());
+        }
+        catch (GeneralSecurityException gse) {
+            Log.e(LOGTAG, "exception getting cipher", gse);
+        }
+        return cipher;
+    }
+
+    private SecretKeySpec getSecretKey() {
+        return new SecretKeySpec(secretKey, ALGORITHM);
+    }
+
+    static class SessionIv {
+        private byte[] iv;
+        private static SecureRandom random = new SecureRandom();
+
+        public SessionIv() {
+            this.iv = generateIv();
+        }
+
+        public IvParameterSpec getIv() {
+            return new IvParameterSpec(this.iv);
+        }
+
+        private byte[] generateIv() {
+            byte bytes[] = new byte[16];
+            random.nextBytes(bytes);
+            return bytes;
+        }
     }
 }
