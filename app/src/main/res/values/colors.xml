@@ -2,7 +2,7 @@
 <resources>
     <color name="primary">#FF5722</color>
     <color name="primary_pressed">#ff833017</color>
-    <color name="ripple">#ffff39eb</color>
+    <color name="ripple">#ffffff</color>
     <color name="primaryDark">#E64A19</color>
 
     <color name="ColorPrimary">#FF5722</color>
