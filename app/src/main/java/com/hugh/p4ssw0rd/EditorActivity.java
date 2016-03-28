@@ -5,13 +5,13 @@ import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
+import com.melnykov.fab.ObservableScrollView;
 
 public class EditorActivity extends Activity implements View.OnClickListener {
     ColorChanger colorChanger;
@@ -28,6 +28,8 @@ public class EditorActivity extends Activity implements View.OnClickListener {
         setContentView(R.layout.activity_editor);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_editor);
+        ObservableScrollView scrollView = (ObservableScrollView) findViewById(R.id.editor_scrollview);
+        //fab.attachToScrollView(scrollView);
         fab.setOnClickListener(this);
 
         passwordIdentifier = (EditText) findViewById(R.id.password_identifier);
@@ -63,7 +65,7 @@ public class EditorActivity extends Activity implements View.OnClickListener {
         TextView pwd_tv = (TextView) findViewById(R.id.editor_password_tv);
 
         colorChanger = ColorChanger.getInstance(this);
-        colorChanger.addViews(layout, passwordIdentifier, passwordUrl, passwordUsername, finalPassword, id_tv, usr_tv, url_tv, pwd_tv);
+        colorChanger.addViews(layout, passwordIdentifier, passwordUrl, passwordUsername, finalPassword, id_tv, usr_tv, url_tv, pwd_tv, scrollView);
         colorChanger.applyColor();
     }
 
@@ -71,7 +73,9 @@ public class EditorActivity extends Activity implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.fab_editor:
-                warnIdentifier();
+                if (fieldsUnfilled()) {
+                    break;
+                }
 
                 if (!editPassword) {
                     onPasswordSaved(
@@ -113,9 +117,18 @@ public class EditorActivity extends Activity implements View.OnClickListener {
         Toast.makeText(this, "Password saved!", Toast.LENGTH_SHORT).show();
     }
 
-    private void warnIdentifier() {
-        if (passwordIdentifier.getText().toString().isEmpty()) {
-            Toast.makeText(this, "Please enter a name for this password!", Toast.LENGTH_SHORT).show();
+    private boolean fieldsUnfilled() {
+        boolean unfilled = passwordIdentifier.getText().toString().isEmpty() |
+                           passwordUsername.getText().toString().isEmpty()   |
+                           passwordUrl.getText().toString().isEmpty()        |
+                           finalPassword.getText().toString().isEmpty();
+
+        if (unfilled) {
+            Toast.makeText(this, "Please fill in all fields!", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        else {
+            return false;
         }
     }
 }
